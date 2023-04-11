@@ -233,7 +233,7 @@ func (t *Table2Struct) repoContent(tableColumns map[string][]column) string {
 		queryOneFunction := "\nfunc (repo *%s) Get%s(ctx context.Context, id int64) (po *%sPO, err error) {\n\tpo = new(%sPO)\n\tquery := \"SELECT * FROM `%s%s` WHERE `id` = ?\"\n\terr = repo.Slave(ctx).GetContext(ctx, po, query, id)\n\n\tif err == sql.ErrNoRows {\n\t\treturn nil, nil\n\t}\n\n\tif err != nil {\n\t\treturn nil, errors.WithStack(err)\n\t}\n\treturn\n}\n"
 		repoContent += fmt.Sprintf(queryOneFunction, repoName, structName, structName, structName, t.prefix, t.table)
 
-		queryListFunction := "\nfunc (repo *%s) Get%ss(ctx context.Context, id int64) (pos []*%sPO, err error) {\n\tpos = []*%sPO{}\n\tquery := \"SELECT * FROM `%s%s` WHERE id = ?\"\n\terr = repo.Slave(ctx).SelectContext(ctx, &pos, query, id)\n\tif err == sql.ErrNoRows {\n\t\treturn pos, nil\n\t}\n\tif err != nil {\n\t\treturn nil, errors.WithStack(err)\n\t}\n\n\treturn\n}\n"
+		queryListFunction := "\nfunc (repo *%s) Get%ss(ctx context.Context, ids []int64) (pos []*%sPO, err error) {\n\t\tif len(userIds) == 0 {\n\treturn pos, nil\n\t}\n\tpos = []*%sPO{}\n\tquery := \"SELECT * FROM `%s%s` WHERE id IN (?)\"\n\tquery, args, err := sqlx.In(query, ids)\n\tif err != nil {\n\t\treturn nil, errors.WithStack(err)\n\t}\n\n\terr = repo.Slave(ctx).SelectContext(ctx, &pos, query, args...)\n\tif err != nil {\n\t\treturn nil, errors.WithStack(err)\n\t}\n\treturn\n}\n"
 		repoContent += fmt.Sprintf(queryListFunction, repoName, structName, structName, structName, t.prefix, t.table)
 
 		queryInsert := ""

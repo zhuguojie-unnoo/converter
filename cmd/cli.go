@@ -17,7 +17,7 @@ func parser() {
 	table := flag.String("table", "", "要迁移的表")
 	realNameMethod := flag.String("realNameMethod", "", "结构体对应的表名")
 	packageName := flag.String("packageName", "model", "生成的struct包名")
-	tagKey := flag.String("tagKey", "orm", "字段tag的key")
+	tagKey := flag.String("tagKey", "json", "字段tag的key")
 	prefix := flag.String("prefix", "", "表前缀")
 	version := flag.Bool("version", false, "版本号")
 	v := flag.Bool("v", false, "版本号")
@@ -71,6 +71,14 @@ func parser() {
 		SavePath(*file).
 		// 数据库dsn
 		Dsn(*dsn).
+		Config(&converter.T2tConfig{
+			StructNameToHump: true,
+			RmTagIfUcFirsted: false,
+			TagToLower:       false,
+			JsonTagToHump:    false,
+			UcFirstOnly:      false,
+			SeperatFile:      false,
+		}).
 		// 执行
 		Run()
 
